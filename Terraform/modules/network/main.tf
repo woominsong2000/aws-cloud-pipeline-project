@@ -39,7 +39,6 @@ resource "aws_route_table" "public" {
   }
   tags = { Name = "${var.project_name}-public-rt" }
 }
-}
 
 # private_rt
 resource "aws_route_table" "private" {
