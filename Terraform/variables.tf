@@ -36,5 +36,5 @@ variable "s3_bucket_name" {
 variable "instance_type" {
   description = "EC2 인스턴스 사양"
   type        = string
-  default     = "t3.medium" 
+  default     = "t3.micro" 
 }

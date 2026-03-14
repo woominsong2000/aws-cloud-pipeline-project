@@ -1,7 +1,7 @@
 # 1. EC2 시작 템플릿
 resource "aws_launch_template" "this" {
   name_prefix   = "${var.project_name}-tpl-"
-  image_id      = "ami-040c33c6a51fd5d96" 
+  image_id      = "ami-0ecfdfd1c8ae01aec" 
   instance_type = var.instance_type
 
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
