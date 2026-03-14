@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "project_name" {
   type        = string
-  default     = "wonwoogotosamsung"
+  default     = "wegotosamsung"
 }
 
 variable "vpc_cidr" {
@@ -37,4 +37,5 @@ variable "instance_type" {
 variable "aws_account_id" {
   description = "AWS 계정 ID (storage 버킷 이름 생성에 사용)"
   type        = string
+  default     = "hong"
 }

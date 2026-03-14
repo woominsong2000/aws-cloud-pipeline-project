@@ -32,3 +32,17 @@ resource "aws_s3_bucket" "processed" {
     Name = "${var.project_name}-processed"
   }
 }
+
+# 3. ECR
+resource "aws_ecr_repository" "app_repo" {
+  name                 = "${var.project_name}-repo-${var.aws_account_id}"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "${var.project_name}-ecr-${var.aws_account_id}"
+  }
+}
