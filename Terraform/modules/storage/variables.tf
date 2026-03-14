@@ -14,7 +14,3 @@ variable "environment" {
   default     = "dev"
 }
 
-variable "sqs_queue_arn" {
-  type        = string
-  description = "이벤트를 보낼 SQS 큐의 ARN"
-}
