@@ -32,14 +32,3 @@ resource "aws_s3_bucket" "processed" {
     Name = "${var.project_name}-processed"
   }
 }
-
-# 3. S3 이벤트 알림: "이미지 생성 SQS 알림"
-resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = aws_s3_bucket.source.id
-
-  queue {
-    queue_arn     = var.sqs_queue_arn
-    events        = ["s3:ObjectCreated:*"] # 모든 생성 이벤트에 대해
-    filter_suffix = ".jpg"               # (선택) jpg 파일만 보낼 수도 있어요
-  }
-}

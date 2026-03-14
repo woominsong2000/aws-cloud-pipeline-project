@@ -8,5 +8,11 @@ variable "project_name" {
 # 2. 원본 S3 버킷의 ARN (SQS 정책에서 '누가 메시지를 보낼지' 확인하는 용도)
 variable "source_bucket_arn" {
   type        = string
-  description = "storage 모듈에서 생성된 원본 S3의 ARN"
+  description = "원본 S3 버킷 ARN"
+}
+
+# 3. 원본 S3 버킷 ID (bucket_notification 연결용)
+variable "source_bucket_id" {
+  type        = string
+  description = "원본 S3 버킷 ID (이름)"
 }

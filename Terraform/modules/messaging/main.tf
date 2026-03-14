@@ -23,7 +23,18 @@ resource "aws_sqs_queue" "dlq" {
   }
 }
 
-# 3. 정책: S3가 이 큐에 메시지를 던질 수 있게 허락함
+# 3. S3 이벤트 알림: source 버킷에 이미지가 생성되면 SQS에 알림
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = var.source_bucket_id
+
+  queue {
+    queue_arn     = aws_sqs_queue.main.arn
+    events        = ["s3:ObjectCreated:*"]
+    filter_suffix = ".jpg"
+  }
+}
+
+# 4. 정책: S3가 이 큐에 메시지를 던질 수 있게 허락함
 resource "aws_sqs_queue_policy" "main_policy" {
   queue_url = aws_sqs_queue.main.id # 큐 주소
 
