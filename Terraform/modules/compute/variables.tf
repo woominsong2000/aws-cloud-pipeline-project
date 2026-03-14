@@ -26,3 +26,8 @@ variable "instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "ecr_repository_url" {
+  description = "ECR repository URL for EC2 to pull images"
+  type        = string
+}
