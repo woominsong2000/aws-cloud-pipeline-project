@@ -28,13 +28,13 @@ variable "private_subnets" {
   default     = ["10.0.10.0/24", "10.0.20.0/24"]
 }
 
-variable "s3_bucket_name" {
-  type        = string
-  default     = "s3-image-storage-hong"
-}
-
 variable "instance_type" {
   description = "EC2 인스턴스 사양"
   type        = string
-  default     = "t3.micro" 
+  default     = "t3.micro"
+}
+
+variable "aws_account_id" {
+  description = "AWS 계정 ID (storage 버킷 이름 생성에 사용)"
+  type        = string
 }
