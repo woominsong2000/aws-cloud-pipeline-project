@@ -12,3 +12,8 @@ output "processed_bucket_id" {
   value       = aws_s3_bucket.processed.id
   description = "처리본 S3 버킷의 이름"
 }
+
+output "ecr_repository_url" {
+  value       = aws_ecr_repository.app_repo.repository_url
+  description = "The URL of the ECR repository"
+}
