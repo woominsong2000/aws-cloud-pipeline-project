@@ -1,3 +1,7 @@
+
+
+# 이 ci 코드는 깃허브에서 검증을 할때 잠깐 리눅스 가상 컴퓨터를 한대 빌려서 밑에 있는 검증 사항들을 싹다 해주는 코드라고 보면 됩니다
+
 name: 'Terraform CI'
 
 on:
@@ -20,7 +24,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.7.0 # 팀에서 사용하는 버전으로 맞추세요
+          terraform_version: 1.7.0 # 프젝 할때 똑같은 버전을 써야 오류가 없습돠
 
       # 3. 테라폼 초기화
       - name: Terraform Init
@@ -30,6 +34,13 @@ jobs:
       - name: Terraform Format
         run: terraform fmt -check
 
-      # 5. 테라폼 문법 및 논리 검사
+      # 5. 테라폼 문법 및 논리 검사 ㅇㅇ
       - name: Terraform Validate
         run: terraform validate
+
+       # 6. 테라폼 플랜 (실제 리소스 변경 사항 확인) => 일부러 넣었습니다
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color -input=false
+        continue-on-error: true # 플랜이 실패해도 CI 전체가 중단되지  않게 함 (에러 확인용)
