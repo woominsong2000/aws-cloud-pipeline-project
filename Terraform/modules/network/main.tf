@@ -46,6 +46,12 @@ resource "aws_route_table" "private" {
   tags   = { Name = "${var.project_name}-private-rt" }
 }
 
+resource "aws_route_table_association" "public" {
+  count          = length(var.public_subnets)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
 resource "aws_route_table_association" "private" {
   count          = length(var.private_subnets)
   subnet_id      = aws_subnet.private[count.index].id
@@ -55,29 +61,61 @@ resource "aws_route_table_association" "private" {
 # s3gw
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.project_vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
+  service_name      = "com.amazonaws.${var.region}.s3"
   vpc_endpoint_type = "Gateway"
 
-  route_table_ids   = [
-    aws_route_table.public.id,
-    aws_route_table.private.id
-  ]
+  route_table_ids = [aws_route_table.private.id]
   tags = { Name = "${var.project_name}-s3-gw-ep" }
 }
 
-# s3
-resource "aws_s3_bucket" "storage" {
-  bucket = var.s3_bucket_name
-  tags   = { Name = var.s3_bucket_name }
+# Interface Endpoint용 보안그룹 (VPC 내부에서 HTTPS만 허용)
+resource "aws_security_group" "vpc_endpoint_sg" {
+  name        = "${var.project_name}-vpce-sg"
+  description = "Allow HTTPS from within VPC for Interface Endpoints"
+  vpc_id      = aws_vpc.project_vpc.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+  tags = { Name = "${var.project_name}-vpce-sg" }
 }
 
-resource "aws_s3_bucket_public_access_block" "storage_block" {
-  bucket = aws_s3_bucket.storage.id
+# ECR Docker (이미지 pull)
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id              = aws_vpc.project_vpc.id
+  service_name        = "com.amazonaws.${var.region}.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
+  private_dns_enabled = true
 
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  tags = { Name = "${var.project_name}-ecr-dkr-ep" }
 }
 
-data "aws_region" "current" {}
+# ECR API (이미지 메타데이터 조회)
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id              = aws_vpc.project_vpc.id
+  service_name        = "com.amazonaws.${var.region}.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
+  private_dns_enabled = true
+
+  tags = { Name = "${var.project_name}-ecr-api-ep" }
+}
+
+# CloudWatch Logs (Docker 컨테이너 로그)
+resource "aws_vpc_endpoint" "logs" {
+  vpc_id              = aws_vpc.project_vpc.id
+  service_name        = "com.amazonaws.${var.region}.logs"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
+  private_dns_enabled = true
+
+  tags = { Name = "${var.project_name}-logs-ep" }
+}
