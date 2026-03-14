@@ -1,24 +1,23 @@
-output "vpc_id" {
-  description = "The ID of the VPC"
-  value       = aws_vpc.project_vpc.id
+variable "project_name" {
+  type        = string
 }
 
-output "public_subnet_ids" {
-  description = "List of IDs of public subnets"
-  value       = aws_subnet.public[*].id
+variable "vpc_cidr" {
+  type        = string
 }
 
-output "private_subnet_ids" {
-  description = "List of IDs of private subnets"
-  value       = aws_subnet.private[*].id
+variable "public_subnets" {
+  type        = list(string)
 }
 
-output "s3_bucket_name" {
-  description = "The name of the S3 bucket"
-  value       = aws_s3_bucket.storage.id
+variable "private_subnets" {
+  type        = list(string)
 }
 
-output "s3_bucket_arn" {
-  description = "The ARN of the S3 bucket"
-  value       = aws_s3_bucket.storage.arn
+variable "availability_zones" {
+  type        = list(string)
+}
+
+variable "s3_bucket_name" {
+  type        = string
 }
