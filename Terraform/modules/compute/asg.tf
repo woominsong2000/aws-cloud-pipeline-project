@@ -63,7 +63,7 @@ resource "aws_autoscaling_group" "this" {
   }
 
   instance_refresh {
-    strategy = "RollingUpdate"
+    strategy = "Rolling"
   }
 }
 
