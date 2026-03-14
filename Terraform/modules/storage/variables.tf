@@ -1,6 +1,7 @@
 variable "project_name" {
+  description = "리소스 식별을 위한 접두어"
   type        = string
-  description = "전체 프로젝트 이름 (compute와 동일하게 유지)"
+  default = "img-pipe"
 }
 
 variable "aws_account_id" {
@@ -11,4 +12,9 @@ variable "aws_account_id" {
 variable "environment" {
   type        = string
   default     = "dev"
+}
+
+variable "sqs_queue_arn" {
+  type        = string
+  description = "이벤트를 보낼 SQS 큐의 ARN"
 }
