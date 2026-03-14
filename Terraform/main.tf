@@ -27,7 +27,18 @@ module "messaging" {
   source_bucket_id  = module.storage.source_bucket_id
 }
 
-# 4. (유나) 컴퓨트 모듈 호출
+# 4. (원우) 람다 모듈 호출
+module "lambda" {
+  source = "./modules/lambda"
+
+  project_name        = var.project_name
+  sqs_queue_arn       = module.messaging.sqs_queue_arn
+  source_bucket_id    = module.storage.source_bucket_id
+  processed_bucket_id = module.storage.processed_bucket_id
+  ecr_repository_url  = module.storage.ecr_repository_url
+}
+
+# 5. (유나) 컴퓨트 모듈 호출
 module "compute" {
   source = "./modules/compute"
 
