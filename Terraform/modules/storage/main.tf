@@ -33,7 +33,7 @@ resource "aws_s3_bucket" "processed" {
   }
 }
 
-# 3. ECR
+# 3. 1st ECR for Lambda-func
 resource "aws_ecr_repository" "app_repo" {
   name                 = "${var.project_name}-repo-${var.aws_account_id}"
   image_tag_mutability = "MUTABLE"
@@ -44,5 +44,19 @@ resource "aws_ecr_repository" "app_repo" {
 
   tags = {
     Name = "${var.project_name}-ecr-${var.aws_account_id}"
+  }
+}
+
+# 4. 2nd ECR for ec2-api
+resource "aws_ecr_repository" "api_repo" {
+  name                 = "${var.project_name}-repo-api-${var.aws_account_id}"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "${var.project_name}-api-${var.aws_account_id}"
   }
 }

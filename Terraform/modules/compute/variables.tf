@@ -1,4 +1,4 @@
-# 1. 경락님께 받아서 적을 네트워크 정보
+# 1. 경락님께 받아올 네트워크 정보
 variable "vpc_id" {
   description = "VPC ID from network module"
   type        = string
@@ -27,7 +27,14 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-variable "ecr_repository_url" {
-  description = "ECR repository URL for EC2 to pull images"
+# 3. Lambda용 ECR (최상위 main에서 넘겨주는 ecr url을 compute 내에서 사용하게끔)
+variable "lambda_ecr_url" {
   type        = string
+  description = "ECR URL for Lambda"
+}
+
+# 4. api용 ECR
+variable "api_ecr_url" {
+  type        = string
+  description = "ECR URL for API Server"
 }
