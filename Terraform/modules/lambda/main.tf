@@ -61,7 +61,7 @@ resource "aws_lambda_function" "image_processor" {
   function_name = "${var.project_name}-image-processor"
   role          = aws_iam_role.lambda_role.arn
   package_type  = "Image"
-  image_uri     = "${var.ecr_repository_url}:latest"
+  image_uri     = "${var.lambda_ecr_url}:latest"
 
   timeout     = 60  # 이미지 처리 시간 고려
   memory_size = 512

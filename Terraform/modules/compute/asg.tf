@@ -3,6 +3,15 @@ resource "aws_launch_template" "this" {
   name_prefix   = "${var.project_name}-tpl-"
   image_id      = "ami-0ecfdfd1c8ae01aec" 
   instance_type = var.instance_type
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2_profile.name
+    }
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required" # IMDSv2 강제
+    http_put_response_hop_limit = 2        # 도커/컨테이너 환경에서 신분증을 잘 찾기 위한 핵심 설정!
+  }
 
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
 
@@ -13,11 +22,18 @@ resource "aws_launch_template" "this" {
     dnf install -y docker
     systemctl start docker
     systemctl enable docker
+
     # 2. ec2-user가 sudo없이 쓸 수 있게
     usermod -aG docker ec2-user
-    # 3. API 서버 실행(ECR에서 가져오기!!)
-    # 테스트용 컨테이너
-    sudo docker run -d -p 80:80 --name web-server nginx
+
+    # 3. AWS CLI로 ECR 로그인(넘겨받은 ECR 주소 여기서 사용)
+    aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${var.api_ecr_url}
+
+    # 4. 유나 API 앱 이미지 가져오기(pull)
+    docker pull ${var.api_ecr_url}:latest
+
+    # 5. API 서버 실행(ECR 주소 반영)
+    sudo docker run -d -p 80:80 ${var.api_ecr_url}:latest
   EOF
   )
 
@@ -53,7 +69,7 @@ resource "aws_autoscaling_group" "this" {
   target_group_arns = [aws_lb_target_group.this.arn]
 
   # 서버 정상 여부 판단
-  health_check_type         = "ELB"
+  health_check_type         = "EC2"
   health_check_grace_period = 300 # 서버가 뜨고 도커 깔리는 시간(5분) 동안은 기다려줌
 
   tag {

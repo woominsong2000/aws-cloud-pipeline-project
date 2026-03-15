@@ -18,7 +18,7 @@ variable "processed_bucket_id" {
   type        = string
 }
 
-variable "ecr_repository_url" {
+variable "lambda_ecr_url" {
   description = "Lambda 컨테이너 이미지 ECR URL"
   type        = string
 }

@@ -35,7 +35,7 @@ module "lambda" {
   sqs_queue_arn       = module.messaging.sqs_queue_arn
   source_bucket_id    = module.storage.source_bucket_id
   processed_bucket_id = module.storage.processed_bucket_id
-  ecr_repository_url  = module.storage.ecr_repository_url
+  lambda_ecr_url      = module.storage.lambda_ecr_url
 }
 
 # 5. (유나) 컴퓨트 모듈 호출
@@ -50,6 +50,7 @@ module "compute" {
   public_subnet_ids  = module.network.public_subnet_ids
   private_subnet_ids = module.network.private_subnet_ids
 
-  # 원우 storage 모듈 output
-  ecr_repository_url = module.storage.ecr_repository_url
+  # storage 모듈 output
+  lambda_ecr_url = module.storage.lambda_ecr_url # 원우님꺼
+  api_ecr_url    = module.storage.api_ecr_url    # 유나 전용
 }
