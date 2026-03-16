@@ -9,7 +9,7 @@ app = FastAPI()
 # --- 환경변수 설정 (테라폼에서 넘겨받을 값들) ---
 # 유나님이 테라폼으로 만든 S3 버킷 이름을 여기에 넣어야 합니다.
 # 나중에 도커로 실행할 때 환경변수로 세팅해줄 거예요.
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "유나님의-s3-버킷-이름-직접입력")
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "wegotosamsung-source-hong")
 AWS_REGION = os.getenv("AWS_REGION", "ap-northeast-2") # 서울 리전 기본값
 
 # --- Boto3 S3 클라이언트 초기화 ---

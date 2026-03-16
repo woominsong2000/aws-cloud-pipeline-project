@@ -32,8 +32,11 @@ resource "aws_launch_template" "this" {
     # 4. 유나 API 앱 이미지 가져오기(pull)
     docker pull ${var.api_ecr_url}:latest
 
-    # 5. API 서버 실행(ECR 주소 반영)
-    sudo docker run -d -p 80:80 ${var.api_ecr_url}:latest
+    # 5. API 서버 실행 (S3_BUCKET_NAME을 환경변수로 꼭 넣어줘야 합니다!)
+    sudo docker run -d -p 80:80 \
+      -e S3_BUCKET_NAME=${var.source_bucket_id} \
+      -e AWS_REGION=ap-northeast-2 \
+      ${var.api_ecr_url}:latest
   EOF
   )
 
