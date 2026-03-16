@@ -44,3 +44,9 @@ jobs:
         if: github.event_name == 'pull_request'
         run: terraform plan -no-color -input=false
         continue-on-error: true # 플랜이 실패해도 CI 전체가 중단되지  않게 함 (에러 확인용)
+          # 7. 테라폼 어플라이 (실제 리소스 변경한것을 적용합니다)
+      - name: Terraform apply
+        id: apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -no-color -input=false -auto-approve
+        continue-on-error: true
