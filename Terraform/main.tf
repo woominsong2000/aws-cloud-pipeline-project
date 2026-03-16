@@ -53,4 +53,8 @@ module "compute" {
   # storage 모듈 output
   lambda_ecr_url = module.storage.lambda_ecr_url # 원우님꺼
   api_ecr_url    = module.storage.api_ecr_url    # 유나 전용
+
+  # 추가: storage 모듈에서 생성된 버킷 이름을 compute 모듈로 전달
+  source_bucket_id   = module.storage.source_bucket_id
+  source_bucket_arn  = module.storage.source_bucket_arn
 }

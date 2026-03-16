@@ -38,3 +38,13 @@ variable "api_ecr_url" {
   type        = string
   description = "ECR URL for API Server"
 }
+
+variable "source_bucket_id" {
+  description = "이미지가 업로드될 실제 S3 버킷 이름"
+  type        = string
+}
+
+variable "source_bucket_arn" {
+  description = "원본 S3 버킷의 ARN"
+  type        = string
+}

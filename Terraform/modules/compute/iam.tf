@@ -31,3 +31,21 @@ resource "aws_iam_role_policy_attachment" "ssm_core" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+
+# 6. EC2가 S3에 사진을 올릴 수 있게 허용하는 정책
+resource "aws_iam_role_policy" "ec2_s3_upload" {
+  name = "${var.project_name}-ec2-s3-policy"
+  role = aws_iam_role.ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:PutObject"]
+        # 지정된 바구니 안의 모든 파일(/*)에 대해 업로드 허용
+        Resource = "${var.source_bucket_arn}/*"
+      }
+    ]
+  })
+}
