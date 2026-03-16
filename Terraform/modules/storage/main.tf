@@ -18,6 +18,7 @@ resource "aws_s3_bucket_public_access_block" "processed_pab" {
 # 1. 원본 버킷: EC2가 이미지를 업로드하는 곳
 resource "aws_s3_bucket" "source" {
   bucket = "${var.project_name}-source-${var.aws_account_id}"
+  force_destroy  = true
 
   tags = {
     Name = "${var.project_name}-source"
@@ -27,6 +28,7 @@ resource "aws_s3_bucket" "source" {
 # 2. 처리본 버킷: Lambda가 리사이즈해서 저장하는 곳
 resource "aws_s3_bucket" "processed" {
   bucket = "${var.project_name}-processed-${var.aws_account_id}"
+  force_destroy  = true
 
   tags = {
     Name = "${var.project_name}-processed"
@@ -37,6 +39,7 @@ resource "aws_s3_bucket" "processed" {
 resource "aws_ecr_repository" "app_repo" {
   name                 = "${var.project_name}-repo-${var.aws_account_id}"
   image_tag_mutability = "MUTABLE"
+  force_delete = true
 
   image_scanning_configuration {
     scan_on_push = true
@@ -51,6 +54,7 @@ resource "aws_ecr_repository" "app_repo" {
 resource "aws_ecr_repository" "api_repo" {
   name                 = "${var.project_name}-repo-api-${var.aws_account_id}"
   image_tag_mutability = "MUTABLE"
+  force_delete = true
 
   image_scanning_configuration {
     scan_on_push = true
