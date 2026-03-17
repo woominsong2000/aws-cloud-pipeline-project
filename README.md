@@ -3,3 +3,4 @@
 
 ## 시스템 아키텍처
 ![Architecture](./Architecture/aws-image-pipeline-architecture.png)
+

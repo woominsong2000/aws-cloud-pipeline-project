@@ -7,3 +7,14 @@ output "sqs_queue_url" {
   value       = aws_sqs_queue.main.id
   description = "나중에 애플리케이션에서 큐 주소가 필요할 때 사용"
 }
+
+# cloud watch 용
+output "sqs_queue_name" {
+  value       = aws_sqs_queue.main.name
+  description = "메인 큐의 이름입니다."
+}
+
+output "sqs_dlq_name" {
+  value       = aws_sqs_queue.dlq.name
+  description = "DLQ의 이름입니다."
+}
