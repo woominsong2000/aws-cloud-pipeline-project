@@ -31,7 +31,7 @@ variable "private_subnets" {
 variable "instance_type" {
   description = "EC2 인스턴스 사양"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.medium"
 }
 
 variable "aws_account_id" {
