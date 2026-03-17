@@ -24,7 +24,7 @@ variable "project_name" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.medium"
 }
 
 # 3. Lambda용 ECR (최상위 main에서 넘겨주는 ecr url을 compute 내에서 사용하게끔)
