@@ -1,5 +1,6 @@
 import json
 import urllib3
+import os
 
 http = urllib3.PoolManager()
 
@@ -14,7 +15,7 @@ def handler(event, context):
     }
 
     # 슬랙 Webhook URL로 전송 (아까 복사한 URL로 대체하거나 환경변수 사용)
-    url = "여기에_슬랙_Webhook_URL을_넣으세요"
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
 
     response = http.request(
         'POST', url,
