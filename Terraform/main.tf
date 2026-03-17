@@ -57,4 +57,10 @@ module "compute" {
   # 추가: storage 모듈에서 생성된 버킷 이름을 compute 모듈로 전달
   source_bucket_id   = module.storage.source_bucket_id
   source_bucket_arn  = module.storage.source_bucket_arn
+
+
+  # cloud watch 용
+  sqs_queue_name       = module.messaging.sqs_queue_name
+  sqs_dlq_name         = module.messaging.sqs_dlq_name
+  lambda_function_name = module.lambda.lambda_function_name
 }
