@@ -41,7 +41,6 @@ module "lambda" {
 # 5. (유나) 컴퓨트 모듈 호출
 module "compute" {
   source = "./modules/compute"
-
   project_name          = var.project_name
   instance_type         = var.instance_type
 
