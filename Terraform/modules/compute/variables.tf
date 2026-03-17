@@ -48,3 +48,25 @@ variable "source_bucket_arn" {
   description = "원본 S3 버킷의 ARN"
   type        = string
 }
+
+# cloud watch용
+variable "sqs_queue_name" {
+  description = "감시할 메인 SQS 큐 이름"
+  type        = string
+}
+
+variable "sqs_dlq_name" {
+  description = "감시할 DLQ 이름"
+  type        = string
+}
+
+variable "lambda_function_name" {
+  description = "감시할 Lambda 함수 이름"
+  type        = string
+}
+
+variable "slack_webhook_url" {
+  description = "Slack Incoming Webhook URL"
+  type        = string
+  sensitive   = true
+}

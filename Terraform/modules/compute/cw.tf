@@ -10,11 +10,11 @@ resource "aws_sns_topic_subscription" "email_yuna" {
   endpoint  = "h.hatmanity@gmail.com"
 }
 
-# 1-2. 대시보드 담당자 구독(우민) 
+# 1-2. 대시보드 담당자 구독(우민)
 resource "aws_sns_topic_subscription" "email_woomin" {
   topic_arn = aws_sns_topic.admin_alert.arn
   protocol  = "email"
-  endpoint  = "woominsong2000@naver.com"
+  endpoint  = "woominsong2000@gmail.com"
 }
 
 # 2. SNS 연결 : ALB 요청 수
@@ -58,4 +58,99 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
     aws_autoscaling_policy.scale_out_by_cpu.arn,
     aws_sns_topic.admin_alert.arn
   ]
+}
+
+# 4. SQS 지연 알람: 처리되지 않은 이미지가 10개 이상 쌓였을 때
+resource "aws_cloudwatch_metric_alarm" "sqs_backlog" {
+  alarm_name          = "${var.project_name}-sqs-backlog"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "ApproximateNumberOfMessagesVisible"
+  namespace           = "AWS/SQS"
+  period              = "60"
+  statistic           = "Sum"
+  threshold           = "10" # 10개 이상 쌓이면 경고
+
+  dimensions = {
+    QueueName = var.sqs_queue_name
+  }
+
+  alarm_actions = [aws_sns_topic.admin_alert.arn]
+}
+
+# 5. DLQ 알람: 처리에 실패한 이미지가 1개라도 발생했을 때 (중요!)
+resource "aws_cloudwatch_metric_alarm" "dlq_not_empty" {
+  alarm_name          = "${var.project_name}-dlq-alert"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "NumberOfMessagesReceived"
+  namespace           = "AWS/SQS"
+  period              = "60"
+  statistic           = "Sum"
+  threshold           = "0" # 1개라도 들어오면 바로 알람
+
+  dimensions = {
+    QueueName = var.sqs_dlq_name
+  }
+
+  alarm_actions = [aws_sns_topic.admin_alert.arn]
+}
+
+# 6. Lambda 에러 알람: 이미지 리사이징 중 코드가 터졌을 때
+resource "aws_cloudwatch_metric_alarm" "lambda_error" {
+  alarm_name          = "${var.project_name}-lambda-error"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "Errors"
+  namespace           = "AWS/Lambda"
+  period              = "60"
+  statistic           = "Sum"
+  threshold           = "0"
+
+  dimensions = {
+    FunctionName = var.lambda_function_name
+  }
+
+  alarm_actions = [aws_sns_topic.admin_alert.arn]
+}
+
+
+# 1. 압축 데이터 (이건 하나만 있어야 함)
+data "archive_file" "slack_lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/../../../app/slack-notifier/handler.py"
+  output_path = "${path.module}/slack_lambda.zip"
+}
+
+# 2. 람다 함수 정의 (이것도 딱 하나만!)
+resource "aws_lambda_function" "slack_notifier" {
+  function_name = "${var.project_name}-slack-notifier"
+  role          = aws_iam_role.slack_lambda_role.arn
+  handler       = "handler.handler"
+  runtime       = "python3.11"
+
+  # 재료 정보가 포함된 이 버전으로 남겨두세요
+  filename         = data.archive_file.slack_lambda_zip.output_path
+  source_code_hash = data.archive_file.slack_lambda_zip.output_base64sha256
+  environment {
+    variables = {
+      SLACK_WEBHOOK_URL = var.slack_webhook_url
+    }
+  }
+}
+
+# 2. SNS가 이 람다를 깨울 수 있게 허용
+resource "aws_lambda_permission" "sns_call_slack" {
+  statement_id  = "AllowExecutionFromSNS"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.slack_notifier.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_sns_topic.admin_alert.arn
+}
+
+# 3. SNS 구독 추가 (Email 대신/함께 Lambda로 발송)
+resource "aws_sns_topic_subscription" "slack_subscription" {
+  topic_arn = aws_sns_topic.admin_alert.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.slack_notifier.arn
 }
