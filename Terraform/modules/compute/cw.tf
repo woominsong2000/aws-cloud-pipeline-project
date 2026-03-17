@@ -14,7 +14,7 @@ resource "aws_sns_topic_subscription" "email_yuna" {
 resource "aws_sns_topic_subscription" "email_woomin" {
   topic_arn = aws_sns_topic.admin_alert.arn
   protocol  = "email"
-  endpoint  = "woominsong2000@gmil.com"
+  endpoint  = "woominsong2000@gmail.com"
 }
 
 # 2. SNS 연결 : ALB 요청 수
@@ -115,13 +115,23 @@ resource "aws_cloudwatch_metric_alarm" "lambda_error" {
 }
 
 
-# 1. 슬랙 람다 함수 정의
+# 1. 압축 데이터 (이건 하나만 있어야 함)
+data "archive_file" "slack_lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/../../../app/slack-notifier/handler.py"
+  output_path = "${path.module}/slack_lambda.zip"
+}
+
+# 2. 람다 함수 정의 (이것도 딱 하나만!)
 resource "aws_lambda_function" "slack_notifier" {
   function_name = "${var.project_name}-slack-notifier"
-  role          = aws_iam_role.lambda_role.arn # 기존 람다 역할 재사용 가능
+  role          = aws_iam_role.slack_lambda_role.arn
   handler       = "handler.handler"
   runtime       = "python3.11"
-  # (코드 압축 파일 경로는 프로젝트 구조에 맞춰 설정하세요)
+
+  # 재료 정보가 포함된 이 버전으로 남겨두세요
+  filename         = data.archive_file.slack_lambda_zip.output_path
+  source_code_hash = data.archive_file.slack_lambda_zip.output_base64sha256
 }
 
 # 2. SNS가 이 람다를 깨울 수 있게 허용
