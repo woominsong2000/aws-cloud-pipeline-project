@@ -63,4 +63,5 @@ module "compute" {
   sqs_queue_name       = module.messaging.sqs_queue_name
   sqs_dlq_name         = module.messaging.sqs_dlq_name
   lambda_function_name = module.lambda.lambda_function_name
+  slack_webhook_url    = var.slack_webhook_url
 }

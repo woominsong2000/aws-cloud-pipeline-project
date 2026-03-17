@@ -64,3 +64,9 @@ variable "lambda_function_name" {
   description = "감시할 Lambda 함수 이름"
   type        = string
 }
+
+variable "slack_webhook_url" {
+  description = "Slack Incoming Webhook URL"
+  type        = string
+  sensitive   = true
+}

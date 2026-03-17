@@ -132,6 +132,11 @@ resource "aws_lambda_function" "slack_notifier" {
   # 재료 정보가 포함된 이 버전으로 남겨두세요
   filename         = data.archive_file.slack_lambda_zip.output_path
   source_code_hash = data.archive_file.slack_lambda_zip.output_base64sha256
+  environment {
+    variables = {
+      SLACK_WEBHOOK_URL = var.slack_webhook_url
+    }
+  }
 }
 
 # 2. SNS가 이 람다를 깨울 수 있게 허용
