@@ -39,3 +39,9 @@ variable "aws_account_id" {
   type        = string
   default     = "hong"
 }
+
+variable "slack_webhook_url" {
+  description = "Slack Incoming Webhook URL"
+  type        = string
+  sensitive   = true
+}
