@@ -78,16 +78,23 @@ resource "aws_cloudwatch_metric_alarm" "sqs_backlog" {
   alarm_actions = [aws_sns_topic.admin_alert.arn]
 }
 
-# 5. DLQ 알람: 처리에 실패한 이미지가 1개라도 발생했을 때 (중요!)
+# 5. DLQ 알람: 큐에 실패한 메시지가 존재할 때 (수정 버전)
 resource "aws_cloudwatch_metric_alarm" "dlq_not_empty" {
   alarm_name          = "${var.project_name}-dlq-alert"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "1"
-  metric_name         = "NumberOfMessagesReceived"
+
+  # 지표 이름을 변경합니다!
+  metric_name         = "ApproximateNumberOfMessagesVisible"
+
   namespace           = "AWS/SQS"
   period              = "60"
-  statistic           = "Sum"
-  threshold           = "0" # 1개라도 들어오면 바로 알람
+
+  # 합계(Sum) 보다는 최대치(Maximum) 또는 평균(Average)으로
+  # 현재 쌓여있는 '양'을 체크하는 것이 좋습니다.
+  statistic           = "Maximum"
+
+  threshold           = "0" # 0보다 크면(즉, 1개라도 쌓이면) 알람
 
   dimensions = {
     QueueName = var.sqs_dlq_name
@@ -95,6 +102,7 @@ resource "aws_cloudwatch_metric_alarm" "dlq_not_empty" {
 
   alarm_actions = [aws_sns_topic.admin_alert.arn]
 }
+
 
 # 6. Lambda 에러 알람: 이미지 리사이징 중 코드가 터졌을 때
 resource "aws_cloudwatch_metric_alarm" "lambda_error" {
