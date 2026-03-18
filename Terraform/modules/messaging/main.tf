@@ -32,6 +32,8 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
     events        = ["s3:ObjectCreated:*"]
     filter_suffix = ".jpg"
   }
+
+  depends_on = [aws_sqs_queue_policy.main_policy]
 }
 
 # 4. 정책: S3가 이 큐에 메시지를 던질 수 있게 허락함
