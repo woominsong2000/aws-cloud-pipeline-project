@@ -1,7 +1,7 @@
 # 1. 메인 큐: S3가 던진 메시지가 들어오는 곳
 resource "aws_sqs_queue" "main" {
   name                       = "${var.project_name}-queue"
-  visibility_timeout_seconds = 15 # 메시지 중복 처리 방지를 위한 은닉 시간
+  visibility_timeout_seconds = 60 # 메시지 중복 처리 방지를 위한 은닉 시간
 
   # [중요] 나중에 아래에서 만들 DLQ와 연결하는 설정
   redrive_policy = jsonencode({
