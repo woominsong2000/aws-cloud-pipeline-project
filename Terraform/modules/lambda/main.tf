@@ -84,7 +84,7 @@ resource "aws_lambda_function" "image_processor" {
 # 4. IAM 권한 추가 (X-Ray 트레이싱을 위한 권한)
 resource "aws_iam_role_policy_attachment" "xray" {
   role       = aws_iam_role.lambda_role.name
-  policy_arn = "arn:aws:iam::aws:policies/AWSXRayDaemonWriteAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
 }
 
 # 5. SQS → Lambda 트리거 연결
