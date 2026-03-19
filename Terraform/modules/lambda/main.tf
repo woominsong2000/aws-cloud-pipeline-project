@@ -75,9 +75,19 @@ resource "aws_lambda_function" "image_processor" {
   tags = {
     Name = "${var.project_name}-image-processor"
   }
+  # Lambda의 성능 모니터링과 디버깅을 위해 활성화된 트레이싱 설정
+  tracing_config { 
+    mode = "Active"
+  }
 }
 
-# 4. SQS → Lambda 트리거 연결
+# 4. IAM 권한 추가 (X-Ray 트레이싱을 위한 권한)
+resource "aws_iam_role_policy_attachment" "xray" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policies/AWSXRayDaemonWriteAccess"
+}
+
+# 5. SQS → Lambda 트리거 연결
 resource "aws_lambda_event_source_mapping" "sqs_trigger" {
   event_source_arn = var.sqs_queue_arn
   function_name    = aws_lambda_function.image_processor.arn
