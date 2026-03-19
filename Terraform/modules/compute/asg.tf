@@ -105,3 +105,23 @@ resource "aws_autoscaling_policy" "scale_out_by_cpu" {
   cooldown               = 300
   policy_type            = "SimpleScaling"
 }
+
+# 5. 스케일 인 정책1 : ALB 요청 수 감소 시
+resource "aws_autoscaling_policy" "scale_in_by_request" {
+  name                   = "${var.project_name}-scale-in-request"
+  autoscaling_group_name = aws_autoscaling_group.this.name
+  adjustment_type        = "ChangeInCapacity"
+  scaling_adjustment     = -1
+  cooldown               = 300
+  policy_type            = "SimpleScaling"
+}
+
+# 6. 스케일 인 정책2 : CPU 사용량 감소 시
+resource "aws_autoscaling_policy" "scale_in_by_cpu" {
+  name                   = "${var.project_name}-scale-in-cpu"
+  autoscaling_group_name = aws_autoscaling_group.this.name
+  adjustment_type        = "ChangeInCapacity"
+  scaling_adjustment     = -1
+  cooldown               = 300
+  policy_type            = "SimpleScaling"
+}
