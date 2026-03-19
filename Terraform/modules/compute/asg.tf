@@ -73,7 +73,7 @@ resource "aws_autoscaling_group" "this" {
 
   # 서버 정상 여부 판단
   health_check_type         = "EC2"
-  health_check_grace_period = 300 # 서버가 뜨고 도커 깔리는 시간(5분) 동안은 기다려줌
+  health_check_grace_period = 180 # 서버가 뜨고 도커 깔리는 시간(3분) 동안은 기다려줌
 
   tag {
     key                 = "Name"
@@ -92,7 +92,7 @@ resource "aws_autoscaling_policy" "scale_out_by_request" {
   autoscaling_group_name = aws_autoscaling_group.this.name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = 1
-  cooldown               = 300
+  cooldown               = 60
   policy_type            = "SimpleScaling"
 }
 
@@ -102,7 +102,7 @@ resource "aws_autoscaling_policy" "scale_out_by_cpu" {
   autoscaling_group_name = aws_autoscaling_group.this.name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = 1
-  cooldown               = 300
+  cooldown               = 60
   policy_type            = "SimpleScaling"
 }
 
