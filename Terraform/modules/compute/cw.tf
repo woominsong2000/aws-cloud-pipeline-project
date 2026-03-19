@@ -37,6 +37,7 @@ resource "aws_cloudwatch_metric_alarm" "high_requests" {
     aws_autoscaling_policy.scale_out_by_request.arn,
     aws_sns_topic.admin_alert.arn
   ]
+  ok_actions = [aws_autoscaling_policy.scale_in_by_request.arn]
 }
 
 # 3. SNS 연결 : CPU 사용량
@@ -58,6 +59,7 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
     aws_autoscaling_policy.scale_out_by_cpu.arn,
     aws_sns_topic.admin_alert.arn
   ]
+  ok_actions = [aws_autoscaling_policy.scale_in_by_cpu.arn]
 }
 
 # 4. SQS 지연 알람: 처리되지 않은 이미지가 10개 이상 쌓였을 때
