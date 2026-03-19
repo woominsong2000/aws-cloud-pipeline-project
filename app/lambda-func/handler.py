@@ -15,6 +15,12 @@ def handler(event, context):
     for record in event["Records"]:
         # 1. SQS 메시지에서 S3 이벤트 파싱
         body = json.loads(record["body"])
+
+        # S3 테스트 이벤트 무시
+        if "Records" not in body:
+            print(f"Skipping non-S3 event: {body.get('Event', 'unknown')}")
+            continue
+
         s3_event = body["Records"][0]["s3"]
 
         source_bucket = s3_event["bucket"]["name"]
