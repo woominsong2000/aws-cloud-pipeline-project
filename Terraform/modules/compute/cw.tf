@@ -124,6 +124,42 @@ resource "aws_cloudwatch_metric_alarm" "lambda_error" {
   alarm_actions = [aws_sns_topic.admin_alert.arn]
 }
 
+# 7. ALB 요청 감소 시 알람 (Scale In 트리거)
+resource "aws_cloudwatch_metric_alarm" "low_requests" {
+  alarm_name          = "${var.project_name}-low-requests"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = "2" # 2회 연속 낮을 때 (신중하게)
+  metric_name         = "RequestCountPerTarget"
+  namespace           = "AWS/ApplicationELB"
+  period              = "60"
+  statistic           = "Sum"
+  threshold           = "10" # 요청이 타겟당 10개 미만이면
+
+  dimensions = {
+    TargetGroup  = aws_lb_target_group.this.arn_suffix
+    LoadBalancer = aws_lb.this.arn_suffix
+  }
+
+  alarm_actions = [aws_autoscaling_policy.scale_in_by_request.arn]
+}
+
+# 8. CPU 사용량 감소 시 알람 (Scale In 트리거)
+resource "aws_cloudwatch_metric_alarm" "low_cpu" {
+  alarm_name          = "${var.project_name}-low-cpu"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "60"
+  statistic           = "Average"
+  threshold           = "30" # CPU가 30% 미만으로 떨어지면
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.this.name
+  }
+
+  alarm_actions = [aws_autoscaling_policy.scale_in_by_cpu.arn]
+}
 
 # 1. 압축 데이터 (이건 하나만 있어야 함)
 data "archive_file" "slack_lambda_zip" {
