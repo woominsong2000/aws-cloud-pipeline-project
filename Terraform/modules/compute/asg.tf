@@ -7,6 +7,10 @@ resource "aws_launch_template" "this" {
     name = aws_iam_instance_profile.ec2_profile.name
     }
 
+  monitoring {
+    enabled = true
+  }
+
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required" # IMDSv2 강제
@@ -67,6 +71,15 @@ resource "aws_autoscaling_group" "this" {
   min_size         = 2
   max_size         = 6
   desired_capacity = 2
+
+  # 추가: ASG 그룹 지표 수집 활성화 (대시보드 인스턴스 수 확인용)
+  enabled_metrics = [
+    "GroupDesiredCapacity",
+    "GroupInServiceInstances",
+    "GroupTotalInstances",
+    "GroupMinSize",
+    "GroupMaxSize"
+  ]
 
   # alb.tf에서 만든 대상 그룹의 ARN을 가져오기
   target_group_arns = [aws_lb_target_group.this.arn]
