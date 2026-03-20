@@ -29,7 +29,7 @@ resource "aws_cloudwatch_dashboard" "main_dashboard" {
             ["AWS/AutoScaling", "GroupInServiceInstances", "AutoScalingGroupName", aws_autoscaling_group.this.name, { label = "InService (점선)", stat = "Maximum" }]
           ],
           view    = "timeSeries", stacked = false, region = "ap-northeast-2", title = "ASG 인스턴스 수 변화",
-          period  = 60 # 데이터 수집 주기인 60초에 맞추는 것이 정확함
+          period  = 60, stat = "Maximum" # 데이터 수집 주기인 60초에 맞추는 것이 정확함
         }
       },
       {

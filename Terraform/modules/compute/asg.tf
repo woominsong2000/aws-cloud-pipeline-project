@@ -7,6 +7,10 @@ resource "aws_launch_template" "this" {
     name = aws_iam_instance_profile.ec2_profile.name
     }
 
+  monitoring {
+    enabled = true
+  }
+
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required" # IMDSv2 강제
