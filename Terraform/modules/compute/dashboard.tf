@@ -25,11 +25,11 @@ resource "aws_cloudwatch_dashboard" "main_dashboard" {
         type   = "metric", x = 12, y = 0, width = 6, height = 6,
         properties = {
           metrics = [
-            ["AWS/AutoScaling", "GroupDesiredCapacity", "AutoScalingGroupName", aws_autoscaling_group.this.name, { label = "Desired (실선)" }],
-            ["AWS/AutoScaling", "GroupInServiceInstances", "AutoScalingGroupName", aws_autoscaling_group.this.name, { label = "InService (점선)" }]
+            ["AWS/AutoScaling", "GroupDesiredCapacity", "AutoScalingGroupName", aws_autoscaling_group.this.name, { label = "Desired (실선)", stat = "Maximum" }],
+            ["AWS/AutoScaling", "GroupInServiceInstances", "AutoScalingGroupName", aws_autoscaling_group.this.name, { label = "InService (점선)", stat = "Maximum" }]
           ],
           view    = "timeSeries", stacked = false, region = "ap-northeast-2", title = "ASG 인스턴스 수 변화",
-          period  = 10, stat = "Average"
+          period  = 60 # 데이터 수집 주기인 60초에 맞추는 것이 정확함
         }
       },
       {
