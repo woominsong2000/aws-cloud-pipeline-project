@@ -1,8 +1,15 @@
+
+# 도커가 설치된 AMI 이미지를 가져옴
+data "aws_ssm_parameter" "ecs_optimized_ami" {
+  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
+}
+
 # 1. EC2 시작 템플릿
 resource "aws_launch_template" "this" {
   name_prefix   = "${var.project_name}-tpl-"
-  image_id      = "ami-0ecfdfd1c8ae01aec" 
+  image_id      = data.aws_ssm_parameter.ecs_optimized_ami.value
   instance_type = var.instance_type
+
   iam_instance_profile {
     name = aws_iam_instance_profile.ec2_profile.name
     }
@@ -22,8 +29,11 @@ resource "aws_launch_template" "this" {
   user_data = base64encode(<<-EOF
     #!/bin/bash
     # 1. 서버 켜지자마자 도커 설치, 시작, 자동 실행
-    dnf update -y
-    dnf install -y docker
+
+    # 도커가 설치된 ami 이미지를 사용함으로 제거
+    # dnf update -y
+    # dnf install -y docker
+
     systemctl start docker
     systemctl enable docker
 
@@ -97,6 +107,15 @@ resource "aws_autoscaling_group" "this" {
   instance_refresh {
     strategy = "Rolling"
   }
+
+  warm_pool {
+    pool_state = "Stopped"
+    min_size   = 2
+
+    instance_reuse_policy {
+      reuse_on_scale_in = true
+    }
+  }
 }
 
 # 3. 스케일링 정책1 : ALB 기반(선제적)
@@ -104,7 +123,7 @@ resource "aws_autoscaling_policy" "scale_out_by_request" {
   name                   = "${var.project_name}-scale-out-request"
   autoscaling_group_name = aws_autoscaling_group.this.name
   adjustment_type        = "ChangeInCapacity"
-  scaling_adjustment     = 1
+  scaling_adjustment     = 2
   cooldown               = 60
   policy_type            = "SimpleScaling"
 }
@@ -114,7 +133,7 @@ resource "aws_autoscaling_policy" "scale_out_by_cpu" {
   name                   = "${var.project_name}-scale-out-cpu"
   autoscaling_group_name = aws_autoscaling_group.this.name
   adjustment_type        = "ChangeInCapacity"
-  scaling_adjustment     = 1
+  scaling_adjustment     = 2
   cooldown               = 60
   policy_type            = "SimpleScaling"
 }
@@ -125,16 +144,18 @@ resource "aws_autoscaling_policy" "scale_in_by_request" {
   autoscaling_group_name = aws_autoscaling_group.this.name
   adjustment_type        = "ChangeInCapacity"
   scaling_adjustment     = -1
-  cooldown               = 300
+  cooldown               = 180
   policy_type            = "SimpleScaling"
 }
 
-# 6. 스케일 인 정책2 : CPU 사용량 감소 시
-resource "aws_autoscaling_policy" "scale_in_by_cpu" {
-  name                   = "${var.project_name}-scale-in-cpu"
-  autoscaling_group_name = aws_autoscaling_group.this.name
-  adjustment_type        = "ChangeInCapacity"
-  scaling_adjustment     = -1
-  cooldown               = 300
-  policy_type            = "SimpleScaling"
-}
+// 트래픽이 몰리는 구간에서 메모리 부족으로 분산 속도가 느려짐에 따라 cpu가 제 역할을 못 할 수 있음.
+// 그에 따라 cpu 사용률이 낮아지고 의도치 않은 scale-in이 발생할 수 있음. 따라서 제거
+# # 6. 스케일 인 정책2 : CPU 사용량 감소 시
+# resource "aws_autoscaling_policy" "scale_in_by_cpu" {
+#   name                   = "${var.project_name}-scale-in-cpu"
+#   autoscaling_group_name = aws_autoscaling_group.this.name
+#   adjustment_type        = "ChangeInCapacity"
+#   scaling_adjustment     = -1
+#   cooldown               = 180
+#   policy_type            = "SimpleScaling"
+# }
