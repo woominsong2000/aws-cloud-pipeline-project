@@ -1,18 +1,23 @@
 
 # 도커가 설치된 AMI 이미지를 가져옴
-data "aws_ssm_parameter" "ecs_optimized_ami" {
-  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
 }
 
-# 1. EC2 시작 템플릿
+# 1. EC2 시작 템플릿 (수정 버전)
 resource "aws_launch_template" "this" {
   name_prefix   = "${var.project_name}-tpl-"
-  image_id      = data.aws_ssm_parameter.ecs_optimized_ami.value
+  image_id      = data.aws_ami.amazon_linux_2.id
   instance_type = var.instance_type
 
   iam_instance_profile {
     name = aws_iam_instance_profile.ec2_profile.name
-    }
+  }
 
   monitoring {
     enabled = true
@@ -21,36 +26,38 @@ resource "aws_launch_template" "this" {
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required" # IMDSv2 강제
-    http_put_response_hop_limit = 2        # 도커/컨테이너 환경에서 신분증을 잘 찾기 위한 핵심 설정!
+    http_put_response_hop_limit = 2          # 컨테이너 내에서 권한 획득을 위한 설정
   }
 
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
 
+  # 수정된 user_data 로직
   user_data = base64encode(<<-EOF
     #!/bin/bash
-    # 1. 서버 켜지자마자 도커 설치, 시작, 자동 실행
+    exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+    yum update -y
+    amazon-linux-extras install docker -y
 
-    # 도커가 설치된 ami 이미지를 사용함으로 제거
-    # dnf update -y
-    # dnf install -y docker
-
+    # 2. 도커 서비스 시작 및 권한 부여
     systemctl start docker
     systemctl enable docker
-
-    # 2. ec2-user가 sudo없이 쓸 수 있게
     usermod -aG docker ec2-user
 
-    # 3. AWS CLI로 ECR 로그인(넘겨받은 ECR 주소 여기서 사용)
-    aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${var.api_ecr_url}
+    # 3. ECR 로그인 주소 처리
+    ECR_DOMAIN=$(echo "${var.api_ecr_url}" | cut -d'/' -f1)
 
-    # 4. 유나 API 앱 이미지 가져오기(pull)
+    # 4. ECR 로그인 시도
+    aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_DOMAIN
+
     docker pull ${var.api_ecr_url}:latest
-
-    # 5. API 서버 실행 (S3_BUCKET_NAME을 환경변수로 꼭 넣어줘야 합니다!)
-    sudo docker run -d -p 80:80 \
+    docker run -d -p 80:80 \
+      --name api-server \
+      --restart always \
       -e S3_BUCKET_NAME=${var.source_bucket_id} \
       -e AWS_REGION=ap-northeast-2 \
       ${var.api_ecr_url}:latest
+
+    echo "--- User Data 실행 완료 ---"
   EOF
   )
 
@@ -79,7 +86,7 @@ resource "aws_autoscaling_group" "this" {
 
   # 서버 대수 (부하테스트 계획 미정이라 무난하게 설정,짝수)
   min_size         = 2
-  max_size         = 6
+  max_size         = 8
   desired_capacity = 2
 
   # 추가: ASG 그룹 지표 수집 활성화 (대시보드 인스턴스 수 확인용)
@@ -95,8 +102,8 @@ resource "aws_autoscaling_group" "this" {
   target_group_arns = [aws_lb_target_group.this.arn]
 
   # 서버 정상 여부 판단
-  health_check_type         = "EC2"
-  health_check_grace_period = 180 # 서버가 뜨고 도커 깔리는 시간(3분) 동안은 기다려줌
+  health_check_type         = "ELB"
+  health_check_grace_period = 300 # 서버가 뜨고 도커 깔리는 시간(3분) 동안은 기다려줌
 
   tag {
     key                 = "Name"

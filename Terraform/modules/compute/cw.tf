@@ -26,7 +26,7 @@ resource "aws_cloudwatch_metric_alarm" "high_requests" {
   namespace           = "AWS/ApplicationELB"
   period              = "60"
   statistic           = "Sum"
-  threshold           = "50"
+  threshold           = "500"
 
   dimensions = {
     TargetGroup  = aws_lb_target_group.this.arn_suffix
@@ -44,12 +44,12 @@ resource "aws_cloudwatch_metric_alarm" "high_requests" {
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   alarm_name          = "${var.project_name}-high-cpu"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "2"
+  evaluation_periods  = "1"
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "60"
+  period              = "30"
   statistic           = "Average"
-  threshold           = "80"
+  threshold           = "70"
 
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.this.name
