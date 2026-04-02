@@ -10,6 +10,9 @@ jobs:
   terraform-apply:
     name: 'Terraform Apply (Auto Deploy)'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Terraform
 
     # AWS 및 테라폼 변수 설정 (GitHub Secrets에 저장된 값을 불러옵니다) 그 tfvars랑은 다른거에요
     env:
