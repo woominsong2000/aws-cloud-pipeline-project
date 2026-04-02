@@ -32,7 +32,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0 # 현재 사용 중인 테라폼 버전에 맞게 수정하세요
+          terraform_version: 1.7.0 # 현재 사용 중인 테라폼 버전에 맞게 수정하세요
 
       # 3. 테라폼 초기화 (.terraform 폴더 생성 및 플러그인 다운로드)
       - name: Terraform Init
